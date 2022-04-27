@@ -4,10 +4,6 @@ import (
 	"sync"
 )
 
-type IAwait[T any] interface {
-	Wait() (T, error)
-}
-
 type Await[T any] struct {
 	v   T
 	err error
