@@ -6,6 +6,10 @@ type Simple[T any] struct {
 	finally func()
 }
 
+func NewSimple[T any]() Promise[T] {
+	return &Simple[T]{}
+}
+
 func (prom *Simple[T]) Then(f func(v T)) Promise[T] {
 	prom.then = f
 	return prom
