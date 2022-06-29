@@ -5,25 +5,22 @@ import (
 	"testing"
 )
 
-func TestResolve(t *testing.T) {
-	prom, await := NewAwait[int]()
-	prom.Resolve(123)
-	i, err := await.Wait()
-	if err != nil {
+func TestAwaitSuccess(t *testing.T) {
+	prom := NewPromise[int]()
+	go prom.Resolve(123)
+	if v, err := prom.Await(); err != nil {
 		t.Fatal(err)
-	}
-	if i != 123 {
-		t.Fail()
+	} else if v != 123 {
+		t.Fatal(v)
 	}
 }
 
-func TestError(t *testing.T) {
-	prom, await := NewAwait[int]()
-	prom.Error(fmt.Errorf("test"))
-	_, err := await.Wait()
-	if err == nil {
-		t.Fail()
+func TestAwaitError(t *testing.T) {
+	prom := NewPromise[int]()
+	go prom.Error(fmt.Errorf("test"))
+	if v, err := prom.Await(); err == nil {
+		t.Fatalf("unexpected success: %v", v)
 	} else if err.Error() != "test" {
-		t.Fail()
+		t.Fatal(err)
 	}
 }
