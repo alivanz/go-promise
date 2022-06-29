@@ -6,6 +6,30 @@ import (
 	"testing"
 )
 
+func TestPendingNoValueThenFirst(t *testing.T) {
+	var u PendingNoValue
+	var count int32
+	u.Then(func() {
+		count += 1
+	})
+	u.Resolve()
+	if count != 1 {
+		t.Fail()
+	}
+}
+
+func TestPendingNoValueResolveFirst(t *testing.T) {
+	var u PendingNoValue
+	var count int32
+	u.Resolve()
+	u.Then(func() {
+		count += 1
+	})
+	if count != 1 {
+		t.Fail()
+	}
+}
+
 func TestPendingThenFirst(t *testing.T) {
 	var u Pending[int64]
 	var count int32
