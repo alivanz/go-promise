@@ -2,17 +2,17 @@ package promise
 
 import (
 	"sync/atomic"
-	"unsafe"
 )
 
 type PendingNoValue struct {
-	f     unsafe.Pointer
+	f     *func()
 	state int32
 }
 
 type Pending[T any] struct {
-	PendingNoValue
-	v unsafe.Pointer
+	f     *func(T)
+	v     *T
+	state int32
 }
 
 const (
@@ -21,63 +21,45 @@ const (
 	bothSet  = 3
 )
 
-// then set callback, returns true if resolved
-func (pending *PendingNoValue) then(f unsafe.Pointer) bool {
-	// make sure f only set once
-	if !atomic.CompareAndSwapPointer(&pending.f, nil, f) {
-		return false
-	}
-	// mark f as done
-	state := atomic.AddInt32(&pending.state, funcSet)
-	return state == bothSet
-}
-
-// resolve returns the callback function if set
-func (pending *PendingNoValue) resolve() unsafe.Pointer {
-	// mark v as done
-	state := atomic.AddInt32(&pending.state, valueSet)
-	if state != bothSet {
-		return nil
-	}
-	return atomic.LoadPointer(&pending.f)
-}
-
 func (pending *PendingNoValue) Then(f func()) {
-	if !pending.then(unsafe.Pointer(&f)) {
+	if !cas(&pending.f, nil, &f) {
+		return
+	}
+	if atomic.AddInt32(&pending.state, funcSet) != bothSet {
 		return
 	}
 	f()
 }
 
 func (pending *PendingNoValue) Resolve() {
-	p := pending.resolve()
-	if p == nil {
+	if atomic.AddInt32(&pending.state, valueSet) != bothSet {
 		return
 	}
-	pf := (*func())(p)
+	pf := load(&pending.f)
+	if pf == nil {
+		return
+	}
 	(*pf)()
 }
 
 func (pending *Pending[T]) Then(f func(T)) {
-	if !pending.then(unsafe.Pointer(&f)) {
+	if !cas(&pending.f, nil, &f) {
 		return
 	}
-	// get v
-	p := atomic.LoadPointer(&pending.v)
-	pv := (*T)(p)
+	if atomic.AddInt32(&pending.state, funcSet) != bothSet {
+		return
+	}
+	pv := load(&pending.v)
 	f(*pv)
 }
 
 func (pending *Pending[T]) Resolve(v T) {
-	// make sure v only set once
-	if !atomic.CompareAndSwapPointer(&pending.v, nil, unsafe.Pointer(&v)) {
+	if !cas(&pending.v, nil, &v) {
 		return
 	}
-	// get f
-	p := pending.resolve()
-	if p == nil {
+	if atomic.AddInt32(&pending.state, valueSet) != bothSet {
 		return
 	}
-	pf := (*func(T))(p)
+	pf := load(&pending.f)
 	(*pf)(v)
 }

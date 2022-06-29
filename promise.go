@@ -2,7 +2,6 @@ package promise
 
 import (
 	"sync/atomic"
-	"unsafe"
 )
 
 type Promise[T any] struct {
@@ -35,9 +34,7 @@ func (prom *Promise[T]) Catch(f func(err error)) *Promise[T] {
 }
 
 func (prom *Promise[T]) Finally(f func()) *Promise[T] {
-	if prom.final.then(unsafe.Pointer(&f)) {
-		f()
-	}
+	prom.final.Then(f)
 	return prom
 }
 
