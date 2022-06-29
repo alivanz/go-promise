@@ -41,22 +41,20 @@ func (prom *Promise[T]) Finally(f func()) *Promise[T] {
 	return prom
 }
 
-func (prom *Promise[T]) Resolve(v T) *Promise[T] {
+func (prom *Promise[T]) Resolve(v T) {
 	// make sure this runs once
 	if atomic.CompareAndSwapInt32(&prom.state, int32(StatePending), int32(StateResolved)) {
 		defer prom.final.Resolve()
 		prom.success.Resolve(v)
 	}
-	return prom
 }
 
-func (prom *Promise[T]) Error(err error) *Promise[T] {
+func (prom *Promise[T]) Error(err error) {
 	// make sure this runs once
 	if atomic.CompareAndSwapInt32(&prom.state, int32(StatePending), int32(StateError)) {
 		defer prom.final.Resolve()
 		prom.fail.Resolve(err)
 	}
-	return prom
 }
 
 func (prom *Promise[T]) State() State {

@@ -7,7 +7,8 @@ import (
 )
 
 func TestResolve(t *testing.T) {
-	prom := NewPromise[int]().Resolve(123)
+	prom := NewPromise[int]()
+	prom.Resolve(123)
 	i, err := prom.Await()
 	if err != nil {
 		t.Fatal(err)
@@ -18,7 +19,8 @@ func TestResolve(t *testing.T) {
 }
 
 func TestError(t *testing.T) {
-	prom := NewPromise[int]().Error(fmt.Errorf("test"))
+	prom := NewPromise[int]()
+	prom.Error(fmt.Errorf("test"))
 	_, err := prom.Await()
 	if err == nil {
 		t.Fail()
@@ -28,10 +30,10 @@ func TestError(t *testing.T) {
 }
 
 func TestResolveDouble(t *testing.T) {
-	prom := NewPromise[int]().
-		Resolve(123).
-		Error(fmt.Errorf("test")).
-		Resolve(456)
+	prom := NewPromise[int]()
+	prom.Resolve(123)
+	prom.Error(fmt.Errorf("test"))
+	prom.Resolve(456)
 	i, err := prom.Await()
 	if err != nil {
 		t.Fatal(err)
@@ -42,10 +44,10 @@ func TestResolveDouble(t *testing.T) {
 }
 
 func TestErrorDouble(t *testing.T) {
-	prom := NewPromise[int]().
-		Error(fmt.Errorf("test")).
-		Resolve(123).
-		Error(fmt.Errorf("test2"))
+	prom := NewPromise[int]()
+	prom.Error(fmt.Errorf("test"))
+	prom.Resolve(123)
+	prom.Error(fmt.Errorf("test2"))
 	_, err := prom.Await()
 	if err == nil {
 		t.Fail()
