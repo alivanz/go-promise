@@ -13,9 +13,7 @@ func (prom *Promise[T]) Await() (T, error) {
 		ret = v
 	}).Catch(func(e error) {
 		err = e
-	}).Finally(func() {
-		wg.Done()
-	})
+	}).Finally(wg.Done)
 	wg.Wait()
 	return ret, err
 }
