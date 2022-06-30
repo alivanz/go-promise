@@ -1,3 +1,6 @@
+[![Go Report Card](https://goreportcard.com/badge/github.com/alivanz/go-promise)](https://goreportcard.com/report/github.com/alivanz/go-promise)
+[![Build Status](https://github.com/alivanz/go-promise/actions/workflows/test.yml/badge.svg)](https://github.com/alivanz/go-promise/actions)
+
 # Introduction
 lock-free / mutex-free and thread-safe promise written in Go
 
