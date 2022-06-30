@@ -6,6 +6,7 @@ import (
 
 type PendingNoValue struct {
 	f     *func()
+	v     int32
 	state int32
 }
 
@@ -32,13 +33,13 @@ func (pending *PendingNoValue) Then(f func()) {
 }
 
 func (pending *PendingNoValue) Resolve() {
+	if !atomic.CompareAndSwapInt32(&pending.v, 0, 1) {
+		return
+	}
 	if atomic.AddInt32(&pending.state, valueSet) != bothSet {
 		return
 	}
 	pf := load(&pending.f)
-	if pf == nil {
-		return
-	}
 	(*pf)()
 }
 
