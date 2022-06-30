@@ -1,10 +1,13 @@
 # Introduction
 lock-free / mutex-free and thread-safe promise written in Go
+
 Supports 1.18 generics
 
 # Usage Example
 
 ## Await
+
+`Await()` blocks until promise resolved, or failed.
 
 ```go
 func main() {
