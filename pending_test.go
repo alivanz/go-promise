@@ -82,3 +82,31 @@ func TestPendingRace(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestPendingNoValueRace(t *testing.T) {
+	var u PendingNoValue
+	var wg sync.WaitGroup
+	var count int32
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		u.Then(func() {
+			t.Log("first")
+			atomic.AddInt32(&count, 1)
+		})
+		u.Then(func() {
+			t.Log("second")
+			t.Fail()
+		})
+	}()
+	go func() {
+		defer wg.Done()
+		u.Resolve()
+		u.Resolve()
+		u.Resolve()
+	}()
+	wg.Wait()
+	if count != 1 {
+		t.Fatal(count)
+	}
+}
